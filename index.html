@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+  <title>SPIN ROYALE | ₹100,000 JACKPOT</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #000000;
+      font-family: system-ui, -apple-system, 'Poppins', 'Segoe UI', 'Inter', Roboto, sans-serif;
+      color: #ffffff;
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* PARTICLE CANVAS */
+    #particleCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: block;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.5;
+    }
+
+    /* MAIN CONTENT - VERTICAL STACK */
+    .main-content {
+      position: relative;
+      z-index: 2;
+      padding: 20px 16px 50px;
+      max-width: 650px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 28px;
+    }
+
+    /* WHEEL SECTION */
+    .wheel-section {
+      background: transparent;
+      text-align: center;
+      width: 100%;
+    }
+
+    /* COMMENT SECTION */
+    .comment-section {
+      background: rgba(0, 0, 0, 0.55);
+      backdrop-filter: blur(12px);
+      border-radius: 36px;
+      padding: 20px 18px;
+      border: 0.5px solid rgba(255, 200, 80, 0.3);
+      width: 100%;
+    }
+
+    /* CONGRATS & HEADINGS */
+    .congrats-wrapper {
+      margin-bottom: 10px;
+    }
+    .congrats-badge {
+      font-size: 1.4rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #FFFFFF, #E0E0E0);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      display: block;
+    }
+    .selected-text {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #FFD966;
+      margin-top: 5px;
+      display: block;
+    }
+    /* SPIN & WIN - YELLOW COLOR */
+    h1 {
+      font-size: 2.8rem;
+      font-weight: 900;
+      color: #FFD966;
+      text-shadow: 0 0 8px rgba(255, 200, 0, 0.6);
+      margin: 8px 0 5px;
+      line-height: 1.2;
+      letter-spacing: -0.5px;
+    }
+    .grand-prize {
+      font-size: 1.9rem;
+      font-weight: 800;
+      background: linear-gradient(145deg, #FFD966, #F5B042);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      display: inline-block;
+      margin: 6px 0;
+    }
+    @media (min-width: 550px) {
+      h1 { font-size: 3.2rem; }
+      .grand-prize { font-size: 2.1rem; }
+      .congrats-badge { font-size: 1.6rem; }
+    }
+
+    /* WHEEL + GIFT BOX + EDGE POINTER (moved to edge, pointing to reward values) */
+    .wheel-wrapper {
+      position: relative;
+      margin: 20px auto;
+      width: 280px;
+      height: 280px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    @media (min-width: 480px) {
+      .wheel-wrapper {
+        width: 310px;
+        height: 310px;
+      }
+    }
+    canvas#wheelCanvas {
+      width: 100% !important;
+      height: 100% !important;
+      border-radius: 50%;
+      box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.15), 0 20px 35px rgba(0, 0, 0, 0.8);
+      background: #eaeaea;
+    }
+    /* BLACK & WHITE SKETCH GIFT BOX (center) - NO POINTER HERE ANYMORE */
+    .center-gift {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 76px;
+      height: 76px;
+      background: #1e1e1e;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 0 3px #f0f0f0, 0 0 0 5px #333, 0 8px 15px black;
+      z-index: 15;
+      pointer-events: none;
+      border: 1px solid #aaaaaa;
+    }
+    .gift-icon-sketch {
+      font-size: 44px;
+      filter: drop-shadow(1px 1px 0px #fff) drop-shadow(-1px -1px 0px #aaa);
+      color: #f5f5f5;
+      text-shadow: none;
+      letter-spacing: -2px;
+      font-weight: 400;
+    }
+    /* EDGE POINTER - placed at the top edge of the wheel, pointing toward reward values */
+    .edge-pointer {
+      position: absolute;
+      top: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 18px solid transparent;
+      border-right: 18px solid transparent;
+      border-top: 38px solid #FFD966;
+      filter: drop-shadow(0 5px 8px rgba(0,0,0,0.6));
+      z-index: 20;
+    }
+    .edge-pointer::after {
+      content: "🎯";
+      position: absolute;
+      top: -52px;
+      left: -16px;
+      font-size: 30px;
+      color: #FFE484;
+      text-shadow: 0 2px 3px black;
+      font-weight: bold;
+    }
+    @media (max-width: 480px) {
+      .center-gift { width: 60px; height: 60px; }
+      .gift-icon-sketch { font-size: 34px; }
+      .edge-pointer { top: -14px; border-left: 14px solid transparent; border-right: 14px solid transparent; border-top: 28px solid #FFD966; }
+      .edge-pointer::after { top: -42px; left: -13px; font-size: 24px; }
+    }
+
+    /* GLOWING CTA BUTTON (REDUCED SIZE) */
+    .green-cta {
+      background: linear-gradient(105deg, #2ecc71, #27ae60);
+      border: none;
+      padding: 10px 20px;
+      font-size: 1.2rem;
+      font-weight: 800;
+      border-radius: 50px;
+      color: white;
+      cursor: pointer;
+      margin: 16px auto 10px;
+      transition: all 0.2s ease;
+      box-shadow: 0 6px 0 #1e6b3e, 0 0 10px #2ecc71, 0 0 18px rgba(46, 204, 113, 0.6);
+      width: auto;
+      min-width: 200px;
+      letter-spacing: 1px;
+      animation: glowPulse 1.8s infinite;
+    }
+    @keyframes glowPulse {
+      0% { box-shadow: 0 6px 0 #1e6b3e, 0 0 6px #2ecc71, 0 0 12px rgba(46,204,113,0.4); }
+      50% { box-shadow: 0 6px 0 #1e6b3e, 0 0 18px #2ecc71, 0 0 28px rgba(46,204,113,0.8); }
+      100% { box-shadow: 0 6px 0 #1e6b3e, 0 0 6px #2ecc71, 0 0 12px rgba(46,204,113,0.4); }
+    }
+    .green-cta:active {
+      transform: translateY(3px);
+      box-shadow: 0 3px 0 #1e6b3e, 0 0 18px #2ecc71;
+    }
+    button:disabled {
+      opacity: 0.6;
+      animation: none;
+    }
+
+    /* SPONSORED SECTION - LOGOS BELOW CTA */
+    .sponsored {
+      margin-top: 12px;
+      text-align: center;
+    }
+    .sponsored p {
+      font-size: 11px;
+      color: #aaa;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+    .logo-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .logo-item {
+      background: rgba(0,0,0,0.6);
+      border-radius: 40px;
+      padding: 6px 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      backdrop-filter: blur(4px);
+      border: 0.5px solid rgba(255,200,80,0.4);
+    }
+    .logo-item img {
+      height: 32px;
+      width: auto;
+      object-fit: contain;
+      border-radius: 8px;
+    }
+    .logo-item span {
+      font-size: 13px;
+      font-weight: 600;
+      color: #FFD966;
+    }
+    @media (max-width: 480px) {
+      .logo-item { padding: 4px 12px; }
+      .logo-item img { height: 24px; }
+      .logo-item span { font-size: 11px; }
+    }
+
+    /* LIVE STATS - REDUCED SIZE */
+    .live-stats {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 16px;
+      flex-wrap: wrap;
+    }
+    .stat {
+      text-align: center;
+      background: rgba(20, 20, 30, 0.7);
+      backdrop-filter: blur(4px);
+      padding: 4px 12px;
+      border-radius: 40px;
+      min-width: 80px;
+      border: 0.5px solid rgba(255,255,255,0.2);
+    }
+    .stat-number {
+      font-size: 18px;
+      font-weight: 800;
+      color: #F7C35C;
+    }
+    .stat-label {
+      font-size: 9px;
+      letter-spacing: 0.5px;
+      color: #ddd;
+    }
+
+    /* COMMENT SECTION - "POST YOUR COMMENT" only (no example) */
+    .comment-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+    }
+    .comment-header h3 {
+      font-weight: 700;
+      color: #FFD966;
+      font-size: 1.2rem;
+    }
+    .online-badge {
+      background: #1f1b12;
+      padding: 5px 14px;
+      border-radius: 30px;
+      font-size: 12px;
+    }
+    .comments-list {
+      max-height: 360px;
+      overflow-y: auto;
+      padding-right: 5px;
+      margin-bottom: 16px;
+    }
+    .comment-card {
+      background: rgba(30, 30, 40, 0.8);
+      border-radius: 24px;
+      padding: 12px 16px;
+      margin-bottom: 12px;
+      border-left: 3px solid #F5B042;
+    }
+    .comment-name {
+      font-weight: bold;
+      color: #FFDA77;
+      font-size: 13px;
+    }
+    .comment-text {
+      font-size: 12px;
+      margin-top: 5px;
+      color: #f0f0f0;
+      word-break: break-word;
+    }
+    .comment-likes {
+      margin-top: 6px;
+      font-size: 11px;
+      color: #aaa;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+    .like-btn {
+      background: none;
+      border: none;
+      color: #ffaaa5;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    textarea {
+      width: 100%;
+      border-radius: 28px;
+      padding: 12px 18px;
+      background: #1c1c1e;
+      border: 1px solid #F5B042;
+      color: white;
+      font-family: inherit;
+      font-size: 13px;
+      resize: vertical;
+    }
+    textarea::placeholder {
+      color: #888;
+      font-size: 12px;
+    }
+    .post-btn {
+      background: #2ecc71;
+      color: white;
+      border: none;
+      font-weight: bold;
+      border-radius: 40px;
+      padding: 10px;
+      width: 100%;
+      margin-top: 10px;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    /* POPUP - simplified device/browser + country */
+    .popup {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.97);
+      backdrop-filter: blur(12px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 2000;
+    }
+    .popup-card {
+      background: #0f0f14;
+      border-radius: 48px;
+      padding: 28px 20px;
+      width: 85%;
+      max-width: 340px;
+      text-align: center;
+      border: 1px solid #FFD966;
+    }
+    .prize-glory {
+      font-size: 36px;
+      font-weight: 800;
+      color: #FFD966;
+    }
+    .popup-buttons {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin-top: 24px;
+    }
+    .popup-buttons button {
+      padding: 10px 18px;
+      border-radius: 40px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    #popupClaimBtn {
+      background: #2ecc71;
+      color: white;
+      border: none;
+    }
+    #popupLaterBtn {
+      background: #444;
+      color: white;
+      border: none;
+    }
+    .device-details {
+      font-size: 12px;
+      background: #1a1a1e;
+      padding: 8px 12px;
+      border-radius: 28px;
+      margin: 12px 0 5px;
+      color: #cccccc;
+      word-break: break-word;
+    }
+
+    @media (max-width: 550px) {
+      .main-content { padding: 16px 12px 40px; gap: 24px; }
+      .green-cta { font-size: 1rem; padding: 8px 16px; min-width: 170px; }
+      .stat-number { font-size: 15px; }
+      .stat { padding: 3px 10px; min-width: 70px; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="particleCanvas"></canvas>
+
+<div class="main-content">
+  <!-- TOP: WHEEL SECTION -->
+  <div class="wheel-section">
+    <div class="congrats-wrapper">
+      <span class="congrats-badge">🎉 CONGRATULATION! 🎉</span>
+      <span class="selected-text">✨ YOU HAVE BEEN SELECTED ✨</span>
+    </div>
+    <h1>SPIN & WIN</h1>
+    <div class="grand-prize">💰 ₹100,000 JACKPOT 💰</div>
+    <p style="margin-top: 4px; opacity:0.7; font-size:13px;">One spin could change your life — claim now</p>
+
+    <div class="wheel-wrapper">
+      <canvas id="wheelCanvas" width="500" height="500"></canvas>
+      <!-- EDGE POINTER (at the top edge, pointing toward reward values) -->
+      <div class="edge-pointer"></div>
+      <!-- BLACK & WHITE SKETCH GIFT BOX (center only, no pointer) -->
+      <div class="center-gift">
+        <div class="gift-icon-sketch">🎁</div>
+      </div>
+    </div>
+
+    <button id="spinBtn" class="green-cta">✨ SPIN THE WHEEL ✨</button>
+
+    <!-- SPONSORED SECTION: JazzCash, Easypaisa, Tapmad -->
+    <div class="sponsored">
+      <p>⭐ Sponsored by ⭐</p>
+      <div class="logo-container">
+        <div class="logo-item">
+          <img src="https://banner2.cleanpng.com/lnd/20250110/pw/d0ad8bb55bc068ecf2058516429406.webp" alt="JazzCash" onerror="this.src='https://placehold.co/80x30?text=JazzCash'">
+          <span>JazzCash</span>
+        </div>
+        <div class="logo-item">
+          <img src="https://banner2.cleanpng.com/lnd/20250110/sj/acded9d6362d497965c18a071cb9fd.webp" alt="Easypaisa" onerror="this.src='https://placehold.co/80x30?text=Easypaisa'">
+          <span>Easypaisa</span>
+        </div>
+        <div class="logo-item">
+          <img src="https://d2liqplnt17rh6.cloudfront.net/coverImages/tapmadnewcoveer_e663773d-773b-41f7-a3cb-e896ad99fa55-686.jpeg" alt="Tapmad" onerror="this.src='https://placehold.co/80x30?text=Tapmad'">
+          <span>Tapmad</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- LIVE STATS - REDUCED SIZE -->
+    <div class="live-stats">
+      <div class="stat"><div class="stat-number" id="liveViews">0</div><div class="stat-label">👁️ VIEWS</div></div>
+      <div class="stat"><div class="stat-number" id="totalLikesCount">0</div><div class="stat-label">❤️ LIKES</div></div>
+      <div class="stat"><div class="stat-number" id="activeWinners">0</div><div class="stat-label">🏆 WINNERS</div></div>
+    </div>
+  </div>
+
+  <!-- BOTTOM: COMMENT SECTION - "POST YOUR COMMENT" (no example) -->
+  <div class="comment-section">
+    <div class="comment-header">
+      <h3>💬 RECENT USERS COMMENT</h3>
+      <span class="online-badge" id="onlineCounter">🔥 0 online</span>
+    </div>
+    <div class="comments-list" id="commentsList"></div>
+    <textarea id="newCommentInput" rows="2" placeholder="Post your comment"></textarea>
+    <button id="postCommentBtn" class="post-btn">📝 POST COMMENT</button>
+  </div>
+</div>
+
+<!-- POPUP REWARD - simplified: device/browser + country only -->
+<div class="popup" id="rewardPopup">
+  <div class="popup-card">
+    <div style="font-size:48px;">🏆🎉</div>
+    <h2 style="color:#FFD966;">CONGRATULATIONS!</h2>
+    <div class="prize-glory" id="popupWinAmount">₹100,000</div>
+    <div class="device-details" id="deviceInfoText">Loading device info...</div>
+    <div class="popup-buttons">
+      <button id="popupClaimBtn">✅ YES, CLAIM NOW</button>
+      <button id="popupLaterBtn">🔁 SPIN LATER</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  (function() {
+    // -------------------- WHEEL SEGMENTS (White/Ash + PKR icons) --------------------
+    const SEGMENTS = [
+      { name: "₹5,000 💵",   value: 5000,  color: "#FFFFFF" },
+      { name: "₹10,000 💰",  value: 10000, color: "#D3D3D3" },
+      { name: "₹2,000 🪙",   value: 2000,  color: "#F5F5F5" },
+      { name: "₹100,000 💎", value: 100000, color: "#E8E8E8" },
+      { name: "TRY AGAIN 🔄", value: 0,     color: "#B0B0B0" },
+      { name: "₹25,000 🎁",  value: 25000, color: "#FFFFFF" },
+      { name: "₹50,000 🏆",  value: 50000, color: "#D3D3D3" },
+      { name: "₹1,000 ✨",   value: 1000,  color: "#F0F0F0" }
+    ];
+    const SEG_COUNT = SEGMENTS.length;
+    const ANGLE_PER_SEG = 360 / SEG_COUNT;
+
+    const canvas = document.getElementById('wheelCanvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width = 500; canvas.height = 500;
+    let currentRotation = (Math.random() * 360) % 360;
+    let spinning = false;
+    let animFrame = null;
+    let spinStartTime = 0;
+    let spinDuration = 2100;
+    let startRotation = 0;
+    let targetDeltaRotation = 0;
+    let currentWonPrize = null;
+    const spinBtn = document.getElementById('spinBtn');
+    const popup = document.getElementById('rewardPopup');
+    const popupWinSpan = document.getElementById('popupWinAmount');
+    const deviceInfoSpan = document.getElementById('deviceInfoText');
+    const claimBtn = document.getElementById('popupClaimBtn');
+    const laterBtn = document.getElementById('popupLaterBtn');
+    const mainContent = document.querySelector('.main-content');
+
+    // FORCE WIN: JACKPOT INDEX (₹100,000)
+    const FORCED_JACKPOT_INDEX = 3;
+
+    // -------------------- DYNAMIC COUNTERS --------------------
+    let liveViews = 51200;
+    let totalLikes = 32890;
+    let activeWinners = 5450;
+    let onlineUsers = 4150;
+
+    const liveViewsEl = document.getElementById('liveViews');
+    const totalLikesEl = document.getElementById('totalLikesCount');
+    const activeWinnersEl = document.getElementById('activeWinners');
+    const onlineCounterEl = document.getElementById('onlineCounter');
+
+    function formatNumber(num) { 
+      if(num > 9999) return (num/1000).toFixed(1)+'K'; 
+      if(num > 999) return (num/1000).toFixed(1)+'K';
+      return num.toString(); 
+    }
+    function updateCountersUI() {
+      liveViewsEl.innerText = formatNumber(Math.floor(liveViews));
+      totalLikesEl.innerText = formatNumber(Math.floor(totalLikes));
+      activeWinnersEl.innerText = formatNumber(Math.floor(activeWinners));
+      onlineCounterEl.innerText = `🔥 ${formatNumber(Math.floor(onlineUsers))} online`;
+    }
+    setInterval(() => {
+      let deltaViews = Math.floor(Math.random() * 190) - 65;
+      liveViews = Math.max(30000, liveViews + deltaViews);
+      let deltaOnline = Math.floor(Math.random() * 100) - 40;
+      onlineUsers = Math.max(2200, onlineUsers + deltaOnline);
+      updateCountersUI();
+    }, 4700);
+    setInterval(() => {
+      totalLikes += Math.floor(Math.random() * 36);
+      activeWinners += Math.floor(Math.random() * 13);
+      updateCountersUI();
+    }, 6000);
+
+    // -------------------- COMMENTS --------------------
+    let comments = [
+      { name: "Kavya S.", text: "Just won ₹100,000! Unbelievable 🤯", likes: 1520, id: 0 },
+      { name: "Rahul M.", text: "Got ₹25,000 instantly 🔥", likes: 810, id: 1 },
+      { name: "Neha K.", text: "Legit platform! Received my prize", likes: 1050, id: 2 },
+      { name: "Aarav S.", text: "This wheel is amazing, i won 5000", likes: 645, id: 3 }
+    ];
+    let nextId = 4;
+    const commentsContainer = document.getElementById('commentsList');
+    
+    function escapeHtml(str) { 
+      return str.replace(/[&<>]/g, function(m){ 
+        if(m === '&') return '&amp;'; if(m === '<') return '&lt;'; if(m === '>') return '&gt;'; return m;
+      }); 
+    }
+    function renderComments() {
+      commentsContainer.innerHTML = '';
+      comments.slice().reverse().forEach(c => {
+        const card = document.createElement('div');
+        card.className = 'comment-card';
+        card.innerHTML = `
+          <div class="comment-name">⭐ ${escapeHtml(c.name)}</div>
+          <div class="comment-text">“${escapeHtml(c.text)}”</div>
+          <div class="comment-likes">
+            <button class="like-btn" data-id="${c.id}">❤️ ${c.likes} likes</button>
+            <span>🕒 now</span>
+          </div>
+        `;
+        commentsContainer.appendChild(card);
+      });
+      document.querySelectorAll('.like-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const id = parseInt(btn.getAttribute('data-id'));
+          const comment = comments.find(c => c.id === id);
+          if(comment) { comment.likes += 1; totalLikes += 1; updateCountersUI(); renderComments(); }
+        });
+      });
+    }
+    document.getElementById('postCommentBtn').addEventListener('click', () => {
+      const input = document.getElementById('newCommentInput');
+      const txt = input.value.trim();
+      if(txt === "") return;
+      const newComment = { name: "👤 User", text: txt, likes: 5, id: nextId++ };
+      comments.unshift(newComment);
+      if(comments.length > 14) comments.pop();
+      renderComments();
+      input.value = '';
+      totalLikes += 3;
+      updateCountersUI();
+    });
+
+    // -------------------- DRAW WHEEL --------------------
+    function degToRad(deg) { return deg * Math.PI / 180; }
+    function drawWheel() {
+      ctx.clearRect(0, 0, 500, 500);
+      const center = { x: 250, y: 250 };
+      const radius = 240;
+      const startAngleRad = degToRad(currentRotation);
+      for (let i = 0; i < SEG_COUNT; i++) {
+        const start = startAngleRad + i * degToRad(ANGLE_PER_SEG);
+        const end = start + degToRad(ANGLE_PER_SEG);
+        ctx.beginPath();
+        ctx.moveTo(center.x, center.y);
+        ctx.arc(center.x, center.y, radius, start, end);
+        ctx.fillStyle = SEGMENTS[i].color;
+        ctx.fill();
+        ctx.save();
+        ctx.strokeStyle = "#AAAAAA";
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(center.x, center.y);
+        ctx.arc(center.x, center.y, radius, start, end);
+        ctx.stroke();
+        ctx.font = `bold ${Math.floor(radius * 0.1)}px "Inter", system-ui`;
+        ctx.fillStyle = "#1a1a1a";
+        const mid = start + degToRad(ANGLE_PER_SEG/2);
+        const textRadius = radius * 0.72;
+        const xTxt = center.x + Math.cos(mid) * textRadius;
+        const yTxt = center.y + Math.sin(mid) * textRadius;
+        let label = SEGMENTS[i].name;
+        if(label.includes("TRY AGAIN")) label = "🔄 TRY";
+        ctx.fillText(label, xTxt - ctx.measureText(label).width/2, yTxt + 5);
+        ctx.restore();
+      }
+      ctx.beginPath();
+      ctx.arc(center.x, center.y, 46, 0, 2*Math.PI);
+      ctx.fillStyle = "#111111";
+      ctx.fill();
+      ctx.strokeStyle = "#FFD966";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    // SPIN ANIMATION (FORCED JACKPOT) - pointer at edge (top, -90°)
+    function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+    function animateSpin(now) {
+      const elapsed = now - spinStartTime;
+      let progress = Math.min(1, elapsed / spinDuration);
+      const ease = easeOutCubic(progress);
+      const newRot = startRotation + targetDeltaRotation * ease;
+      currentRotation = newRot % 360;
+      drawWheel();
+      if(progress < 1) {
+        animFrame = requestAnimationFrame(animateSpin);
+      } else {
+        spinning = false;
+        spinBtn.disabled = false;
+        currentWonPrize = SEGMENTS[FORCED_JACKPOT_INDEX];
+        const winAmount = currentWonPrize.value;
+        popupWinSpan.innerText = `₹${winAmount.toLocaleString()} JACKPOT!`;
+        
+        // Get device & browser info + country (Pakistan)
+        const userAgent = navigator.userAgent;
+        let browser = "Unknown";
+        if (userAgent.indexOf("Chrome") > -1) browser = "Chrome";
+        else if (userAgent.indexOf("Firefox") > -1) browser = "Firefox";
+        else if (userAgent.indexOf("Safari") > -1) browser = "Safari";
+        else if (userAgent.indexOf("Edge") > -1) browser = "Edge";
+        else if (userAgent.indexOf("Opera") > -1) browser = "Opera";
+        let device = "Desktop";
+        if (/(android|iphone|ipad|mobile)/i.test(userAgent)) device = "Mobile";
+        deviceInfoSpan.innerHTML = `📱 ${device} | ${browser}<br>📍 Country: Pakistan`;
+        
+        popup.style.display = "flex";
+        
+        activeWinners += 1;
+        totalLikes += 160;
+        updateCountersUI();
+        let jackpotMsg = "🔥 I JUST HIT THE ₹100,000 JACKPOT!! This is real! 🙌💰";
+        comments.unshift({ name: "🏆 JACKPOT WINNER", text: jackpotMsg, likes: 920, id: nextId++ });
+        if(comments.length > 14) comments.pop();
+        renderComments();
+        cancelAnimationFrame(animFrame);
+        animFrame = null;
+      }
+    }
+
+    function startSpin() {
+      if(spinning) return;
+      spinning = true;
+      spinBtn.disabled = true;
+      const targetSegmentIndex = FORCED_JACKPOT_INDEX;
+      const targetStart = targetSegmentIndex * ANGLE_PER_SEG;
+      const pointerAngle = -90; // Edge pointer is at top (12 o'clock)
+      let pointerNormalized = (pointerAngle % 360 + 360) % 360;
+      let requiredFinalRotation = (pointerNormalized - targetStart + 360) % 360;
+      let delta = (requiredFinalRotation - currentRotation + 360) % 360;
+      const fullSpins = 8 + Math.floor(Math.random() * 7);
+      targetDeltaRotation = fullSpins * 360 + delta;
+      startRotation = currentRotation;
+      spinStartTime = performance.now();
+      animFrame = requestAnimationFrame(animateSpin);
+    }
+
+    // YES button redirects directly to OFFER LINK
+    function redirectToOffer() {
+      window.location.href = "https://www.jazzcash.com.pk/promotions/spinroyale";
+    }
+    function closePopup() {
+      popup.style.display = "none";
+    }
+
+    spinBtn.addEventListener('click', startSpin);
+    claimBtn.addEventListener('click', redirectToOffer);
+    laterBtn.addEventListener('click', closePopup);
+
+    drawWheel();
+    renderComments();
+    updateCountersUI();
+
+    // -------------------- PARTICLES (multi-color, reduced volume) --------------------
+    const particleCanvas = document.getElementById('particleCanvas');
+    let pCtx = particleCanvas.getContext('2d');
+    let particles = [];
+    let particleCount = 80;
+    const colorPalette = ["#FFD966", "#FFB347", "#FF6B6B", "#4ECDC4", "#A78BFA", "#F687B3", "#6EE7B7", "#FBBF24", "#FB923C", "#C084FC", "#34D399"];
+    function resizeCanvas() {
+      particleCanvas.width = window.innerWidth;
+      particleCanvas.height = window.innerHeight;
+    }
+    class Particle {
+      constructor() {
+        this.x = Math.random() * particleCanvas.width;
+        this.y = Math.random() * particleCanvas.height;
+        this.vx = (Math.random() - 0.5) * 0.4;
+        this.vy = (Math.random() - 0.5) * 0.35;
+        this.size = Math.random() * 2.2 + 0.6;
+        this.color = colorPalette[Math.floor(Math.random() * colorPalette.length)];
+      }
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        if(this.x < 0) this.x = particleCanvas.width;
+        if(this.x > particleCanvas.width) this.x = 0;
+        if(this.y < 0) this.y = particleCanvas.height;
+        if(this.y > particleCanvas.height) this.y = 0;
+      }
+      draw() {
+        pCtx.beginPath();
+        pCtx.arc(this.x, this.y, this.size, 0, Math.PI*2);
+        pCtx.fillStyle = this.color;
+        pCtx.shadowBlur = 2;
+        pCtx.fill();
+      }
+    }
+    function initParticles() {
+      particles = [];
+      for(let i=0; i<particleCount; i++) particles.push(new Particle());
+    }
+    function animateParticles() {
+      pCtx.clearRect(0, 0, particleCanvas.width, particleCanvas.height);
+      for(let p of particles) { p.update(); p.draw(); }
+      requestAnimationFrame(animateParticles);
+    }
+    window.addEventListener('resize', () => { resizeCanvas(); initParticles(); });
+    resizeCanvas();
+    initParticles();
+    animateParticles();
+  })();
+</script>
+</body>
+</html>
